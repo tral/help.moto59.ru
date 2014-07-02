@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">help.moto59.ru</string>
+    <string name="sms_text_placeholder">Что случилось?</string>
+    <string name="send_coords_text">Добавить координаты к SMS</string>
+    <string name="send_button_text">Отправить SMS</string>
+    
+    
+</resources>
