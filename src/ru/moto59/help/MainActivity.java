@@ -46,6 +46,7 @@ public class MainActivity extends Activity {
 	// Dialogs
     private static final int SEND_SMS_DIALOG_ID = 0;
     private final static int PHONE_DIALOG_ID = 1;
+    private final static int RULES_DIALOG_ID = 2;
 	ProgressDialog mSMSProgressDialog;
 
 	// My GPS states
@@ -260,6 +261,39 @@ public class MainActivity extends Activity {
         	  mSMSProgressDialog.setMessage("Отправка SMS...");
         	  return mSMSProgressDialog;
         	  
+        case RULES_DIALOG_ID:
+            LayoutInflater inflater_rules = getLayoutInflater();
+            View layout_rules = inflater_rules.inflate(R.layout.rules_dialog, (ViewGroup)findViewById(R.id.rules_dialog_layout));
+            
+            AlertDialog.Builder builder_rules = new AlertDialog.Builder(this);
+            builder_rules.setView(layout_rules);
+            
+            // Stored phone number
+            //final EditText keyDlgEdit = (EditText) layout_phone.findViewById(R.id.phone_edit_text);
+    		
+            TextView rulesView = (TextView) layout_rules.findViewById(R.id.textView1);
+            
+            rulesView.setText(R.string.rules_str);
+    		
+            //builder_rules.setMessage("Порядок извещения других участников сервиса об экстренном событии");
+            /*
+            builder_rules.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+
+                	
+                }
+            });*/
+            
+            builder_rules.setNegativeButton("Понятно", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.cancel();
+                    }
+            });
+            
+            builder_rules.setCancelable(false);
+            
+            return builder_rules.create();
+            
         case PHONE_DIALOG_ID:
             LayoutInflater inflater = getLayoutInflater();
             View layout = inflater.inflate(R.layout.phone_dialog, (ViewGroup)findViewById(R.id.phone_dialog_layout));
@@ -315,6 +349,7 @@ public class MainActivity extends Activity {
         CharSequence message;
         switch (item.getItemId()) {
             case IDM_RULES:
+            	showDialog(RULES_DIALOG_ID);
             	/*
             	// 
               	dbHelper = new DBHelper(this);
@@ -450,6 +485,18 @@ public class MainActivity extends Activity {
                 }
             }
         });
+     
+        // Show rules immediately after launch?
+        dbHelper = new DBHelper(this);
+     	if (dbHelper.needToSplashRules()) {
+     		SQLiteDatabase db = dbHelper.getWritableDatabase();
+    		ContentValues cv = new ContentValues();
+            cv.put("rules", 0);
+            db.update("rules", cv, "_id = ?", new String[] { "1" });
+     		showDialog(RULES_DIALOG_ID);
+     	}
+		dbHelper.close();
+        
         
         
     }

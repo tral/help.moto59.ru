@@ -27,6 +27,22 @@ import android.database.sqlite.SQLiteOpenHelper;
     	
     	return "";
     }
+
+    public boolean needToSplashRules() {
+    	SQLiteDatabase db = this.getWritableDatabase();
+    	Cursor c = db.query("rules", null, "_id=1", null, null, null, null);
+    	
+    	if (c.moveToFirst()) {
+            int idx = c.getColumnIndex("rules");
+            int rules = c.getInt(idx);
+            if (rules>0) { return true; }
+            else {return false;}
+		}
+    	
+    	return false;
+    }
+    
+    
     
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -43,6 +59,18 @@ import android.database.sqlite.SQLiteOpenHelper;
       cv.put("_id", 1);
       cv.put("phone", "9955555555"); // без "+7" !!!
       db.insert("phone", null, cv);  
+      
+      // ѕоказывать ли правила при запуске
+      db.execSQL("create table rules ("
+              + "_id integer primary key," 
+              + "rules int"
+              + ");");
+      
+      // ƒоговорились, что хранитс€ в таблице с _id=1
+      cv.clear();
+      cv.put("_id", 1);
+      cv.put("rules", 1); 
+      db.insert("rules", null, cv);  
       
     }
 
