@@ -77,10 +77,13 @@ public class MainActivity extends Activity {
 	
 	private void Resume_GPS_Scanning() {
 		manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locListener);
+		sendBtn.setEnabled(false);
 		printLocation(null, GPS_GETTING_COORDINATS);
 	} 
 	
 	private void printLocation(Location loc, int state) {
+		
+		String accuracy;
 		
 		switch (state) {
 		case GPS_PROVIDER_DISABLED :
@@ -95,11 +98,16 @@ public class MainActivity extends Activity {
 			GPSstate.setText("");
 			break;	
 		case GPS_GOT_COORDINATS :
-			if (loc != null)
-			{
-				GPSstate.setText("Координаты определены:\t" + 
-						"\nДолгота:\t" + loc.getLongitude() + 	    
-		                "\nШирота:\t" + loc.getLatitude());
+			if (loc != null) {
+
+				// Accuracy
+				if (loc.getAccuracy() < 0.0001) {accuracy = "?"; }
+					else if (loc.getAccuracy() > 99) {accuracy = "> 99";}
+						else {accuracy = String.format("%2.0f", loc.getAccuracy());};
+				
+				GPSstate.setText("Координаты получены, точность: " + accuracy + " м. ");
+						//+ "\t\nДолгота:\t" + loc.getLongitude() 	    
+		                //+ "\nШирота:\t" + loc.getLatitude());
 				GPSstate.setTextColor(Color.GREEN);
 				sendBtn.setEnabled(true);
 			}
