@@ -50,7 +50,9 @@
        android:layout_height="fill_parent"
 
        android:gravity="center"
-       android:text="@string/send_button_text" />
+       android:text="@string/send_button_text"
+       
+        />
        
    
    

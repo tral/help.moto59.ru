@@ -6,5 +6,16 @@
     <string name="send_coords_text">Добавить координаты к SMS</string>
     <string name="send_button_text">Отправить SMS</string>
     
+	<string name="info_sms_sent">SMS отправлена</string>
+	<string name="info_sms_delivered">SMS доставлена получателю</string>
+	<string name="info_sms_not_delivered">SMS НЕ доставлена получателю!</string>
+	<string name="info_sms_noservice">Нет обслуживания! SMS не отправлена!</string>
+	<string name="info_sms_radioof">Нет связи с сотовым оператором! SMS не отправлена!</string>
+	<string name="info_sms_nullpdu">Ошибка PDU! SMS не отправлена!</string>
+	<string name="info_sms_generic">Общий сбой! SMS не отправлена!</string>
+	
+	<string name="error_sms_empty">Введите текст SMS!</string>
+	
+    
     
 </resources>
