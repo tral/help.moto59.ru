@@ -286,7 +286,7 @@ public class MainActivity extends Activity {
 	                cv.put("phone", keyDlgEdit.getText().toString());
 	                int updCount = db.update("phone", cv, "_id = ?", new String[] { "1" });
 	                dbHelper.close();
-	        
+	                phoneNumber = keyDlgEdit.getText().toString();
 	                keyDlgEdit.selectAll(); // чтобы при повторном открытии номер был выделен
                 }
             });
