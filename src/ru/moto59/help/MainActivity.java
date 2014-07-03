@@ -4,13 +4,17 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
@@ -18,9 +22,12 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -38,6 +45,7 @@ public class MainActivity extends Activity {
 	
 	// Dialogs
     private static final int SEND_SMS_DIALOG_ID = 0;
+    private final static int PHONE_DIALOG_ID = 1;
 	ProgressDialog mSMSProgressDialog;
 
 	// My GPS states
@@ -64,6 +72,9 @@ public class MainActivity extends Activity {
 	// Globals
 	private String phoneNumber;
 	private String coordsToSend;
+	
+    // Database
+    DBHelper dbHelper;
 	
 
 	// Functions sends an SMS message
@@ -95,7 +106,7 @@ public class MainActivity extends Activity {
 			deliveredArrayIntents.add(deliveredPI);
 		}
 		  
-		sms.sendMultipartTextMessage(phoneNumber, null, mArray, sentArrayIntents, deliveredArrayIntents);
+		sms.sendMultipartTextMessage("+7" + phoneNumber, null, mArray, sentArrayIntents, deliveredArrayIntents);
 
     }
 	
@@ -239,18 +250,104 @@ public class MainActivity extends Activity {
     @Override
     protected Dialog onCreateDialog(int id) {
         switch (id) {
+        
         case SEND_SMS_DIALOG_ID:
         	  mSMSProgressDialog = new ProgressDialog(MainActivity.this);
         	  //mCatProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        	  mSMSProgressDialog.setCanceledOnTouchOutside(false);
-        	  mSMSProgressDialog.setCancelable(false);
+        	  mSMSProgressDialog.setCanceledOnTouchOutside(true);
+        	  mSMSProgressDialog.setCancelable(true);
         	  mSMSProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         	  mSMSProgressDialog.setMessage("Отправка SMS...");
         	  return mSMSProgressDialog;
+        	  
+        case PHONE_DIALOG_ID:
+            LayoutInflater inflater = getLayoutInflater();
+            View layout = inflater.inflate(R.layout.phone_dialog, (ViewGroup)findViewById(R.id.phone_dialog_layout));
+            
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setView(layout);
+            
+            // Stored phone number
+            final EditText keyDlgEdit = (EditText) layout.findViewById(R.id.phone_edit_text);
+    		dbHelper = new DBHelper(this);
+         	SQLiteDatabase db = dbHelper.getWritableDatabase();
+         	keyDlgEdit.setText(dbHelper.getPhone());
+    		dbHelper.close();
+    		
+            builder.setMessage("Номер телефона для SMS");
+            
+            builder.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+
+                	// update phone number
+                	dbHelper = new DBHelper(MainActivity.this);
+	        		SQLiteDatabase db = dbHelper.getWritableDatabase();
+	        		ContentValues cv = new ContentValues();
+	                cv.put("phone", keyDlgEdit.getText().toString());
+	                int updCount = db.update("phone", cv, "_id = ?", new String[] { "1" });
+	                dbHelper.close();
+	        
+	                keyDlgEdit.selectAll(); // чтобы при повторном открытии номер был выделен
+                }
+            });
+            
+            builder.setNegativeButton("Отменить", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.cancel();
+                    }
+            });
+            
+            builder.setCancelable(false);
+
+            AlertDialog dialog = builder.create();
+            // show keyboard automatically
+            keyDlgEdit.selectAll();
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            return dialog;
+
         }
         return null;
     }
 		
+    // Menu
+ 	@Override
+ 	public boolean onOptionsItemSelected(MenuItem item) {
+        CharSequence message;
+        switch (item.getItemId()) {
+            case IDM_RULES:
+            	/*
+            	// 
+              	dbHelper = new DBHelper(this);
+           		SQLiteDatabase db = dbHelper.getWritableDatabase();
+           		Cursor tmp = db.query(true,"data_", null,null,null,null,null,null,null);
+           	   
+           		if (tmp.getCount()>0 ) {
+           			MainActivity.this.ShowToast("Сначала синхронизируйте расходы!", Toast.LENGTH_LONG);
+ 				} else {
+ 					showDialog(CAT_PROGRESS_DIALOG_ID);
+ 					// Запускаем новый поток для вытягивания категорий с удаленного сервера
+ 					mThreadUpdateCategories = new ThreadUpdateCategories(handler);
+ 					mThreadUpdateCategories.setSecretKey(dbHelper.getSecretKey());
+ 					mThreadUpdateCategories.setState(ThreadUpdateCategories.STATE_RUNNING);
+ 				    mThreadUpdateCategories.start();
+ 				}
+           	    
+           		tmp.close();
+           		dbHelper.close();
+            	*/
+                break;
+            case IDM_SETTINGS:
+            	showDialog(PHONE_DIALOG_ID);
+                break;    
+                
+            default:
+                return false;
+        }
+        
+        return true;
+    }
+    
+    
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -304,7 +401,10 @@ public class MainActivity extends Activity {
     	super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        phoneNumber = "+79197066604";
+        // Stored phone number
+		dbHelper = new DBHelper(this);
+     	phoneNumber = dbHelper.getPhone();
+		dbHelper.close();
         
         // Checkbox
         checkBox = (CheckBox)findViewById(R.id.checkBox1);
