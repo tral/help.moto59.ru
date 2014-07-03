@@ -34,9 +34,11 @@ public class MainActivity extends Activity {
 
 	// Menu
 	public static final int IDM_SETTINGS = 101;
+	public static final int IDM_RULES = 102;
 	
 	// Dialogs
     private static final int SEND_SMS_DIALOG_ID = 0;
+	ProgressDialog mSMSProgressDialog;
 
 	// My GPS states
 	public static final int GPS_PROVIDER_DISABLED = 1;
@@ -46,7 +48,10 @@ public class MainActivity extends Activity {
 	public static final int GPS_PROVIDER_OUT_OF_SERVICE = 5;
 	public static final int GPS_PAUSE_SCANNING = 6;
 	
-	// For SMS Result Listeners
+	// Location manager
+	private LocationManager manager;
+	
+	// SMS Broadcast Receivers
 	BroadcastReceiver sendBroadcastReceiver = new sentReceiver();
     BroadcastReceiver deliveryBroadcastReciever = new deliverReceiver();;
 	
@@ -55,21 +60,15 @@ public class MainActivity extends Activity {
 	Button sendBtn;
 	CheckBox checkBox;
 	EditText smsEdit;
-	ProgressDialog mSMSProgressDialog;
 	
-	// Phone number
+	// Globals
 	private String phoneNumber;
-	
-	// Координаты для отправки
 	private String coordsToSend;
-	
-	// Location manager
-	private LocationManager manager;
-	
 	
 
 	// Functions sends an SMS message
 	private void sendSMS(String phoneNumber, String message) {
+		
 		String SENT = "SMS_SENT";
 		String DELIVERED = "SMS_DELIVERED";
 		
@@ -106,12 +105,10 @@ public class MainActivity extends Activity {
         public void onReceive(Context context, Intent arg1) {
             switch (getResultCode()) {
             case Activity.RESULT_OK:
-                //Toast.makeText(getBaseContext(),  R.string.info_sms_delivered, Toast.LENGTH_SHORT).show();
-                MainActivity.this.ShowToast(R.string.info_sms_delivered, Toast.LENGTH_LONG);
+                MainActivity.this.ShowToast(R.string.info_sms_delivered, Toast.LENGTH_SHORT);
                 break;
             case Activity.RESULT_CANCELED:
-                //Toast.makeText(getBaseContext(), "sms_not_delivered", Toast.LENGTH_SHORT).show();
-                MainActivity.this.ShowToast(R.string.info_sms_not_delivered, Toast.LENGTH_LONG);
+                MainActivity.this.ShowToast(R.string.info_sms_not_delivered, Toast.LENGTH_SHORT);
                 break;
             }
         }
@@ -126,34 +123,27 @@ public class MainActivity extends Activity {
         
             switch (getResultCode()) {
             case Activity.RESULT_OK:
-                
-//              Toast.makeText(getBaseContext(), R.string.info_sms_sent, Toast.LENGTH_SHORT).show();
-                MainActivity.this.ShowToast(R.string.info_sms_sent, Toast.LENGTH_LONG);
-                
+                MainActivity.this.ShowToast(R.string.info_sms_sent, Toast.LENGTH_SHORT);
                 //startActivity(new Intent(MainActivity.this, ChooseOption.class));
                 //overridePendingTransition(R.anim.animation, R.anim.animation2);
                 break;
             case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                //Toast.makeText(getBaseContext(), R.string.info_sms_generic, Toast.LENGTH_SHORT).show();
-                MainActivity.this.ShowToast(R.string.info_sms_generic, Toast.LENGTH_LONG);
+                MainActivity.this.ShowToast(R.string.info_sms_generic, Toast.LENGTH_SHORT);
                 break;
             case SmsManager.RESULT_ERROR_NO_SERVICE:
-                //Toast.makeText(getBaseContext(), R.string.info_sms_noservice, Toast.LENGTH_SHORT).show();
-                MainActivity.this.ShowToast(R.string.info_sms_noservice, Toast.LENGTH_LONG);
+                MainActivity.this.ShowToast(R.string.info_sms_noservice, Toast.LENGTH_SHORT);
                 break;
             case SmsManager.RESULT_ERROR_NULL_PDU:
-                //Toast.makeText(getBaseContext(), R.string.info_sms_nullpdu, Toast.LENGTH_SHORT).show();
-                MainActivity.this.ShowToast(R.string.info_sms_nullpdu, Toast.LENGTH_LONG);
+                MainActivity.this.ShowToast(R.string.info_sms_nullpdu, Toast.LENGTH_SHORT);
                 break;
             case SmsManager.RESULT_ERROR_RADIO_OFF:
-                //Toast.makeText(getBaseContext(), R.string.info_sms_radioof, Toast.LENGTH_SHORT).show();
-                MainActivity.this.ShowToast(R.string.info_sms_radioof, Toast.LENGTH_LONG);
+                MainActivity.this.ShowToast(R.string.info_sms_radioof, Toast.LENGTH_SHORT);
                 break;
             }
         }
     }
 	
-	
+	// Location events (we use GPS only)
 	private LocationListener locListener = new LocationListener() {
 		
 		public void onLocationChanged(Location argLocation) {
@@ -171,17 +161,6 @@ public class MainActivity extends Activity {
 	
 		@Override
 		public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-//				switch (arg1) {
-//			    case LocationProvider.OUT_OF_SERVICE:
-//			    	printLocation(null, GPS_PROVIDER_OUT_OF_SERVICE);
-//			        break;
-//			    case LocationProvider.TEMPORARILY_UNAVAILABLE:
-//			    	printLocation(null, GPS_PROVIDER_UNAVIALABLE);
-//			        break;
-//			    case LocationProvider.AVAILABLE:
-//			    	printLocation(null, GPS_GETTING_COORDINATS);
-//			        break;
-//			    }
 		}
 	};
 	
@@ -208,11 +187,11 @@ public class MainActivity extends Activity {
 		
 		switch (state) {
 		case GPS_PROVIDER_DISABLED :
-			GPSstate.setText("GPS выключен, коснитесь для включения");
+			GPSstate.setText(R.string.gps_state_disabled);
 			GPSstate.setTextColor(Color.RED);
 			break;
 		case GPS_GETTING_COORDINATS :
-			GPSstate.setText("Определение координат...");
+			GPSstate.setText(R.string.gps_state_in_progress);
 			GPSstate.setTextColor(Color.YELLOW);
 			break;
 		case GPS_PAUSE_SCANNING :
@@ -229,14 +208,13 @@ public class MainActivity extends Activity {
 						else {accuracy = String.format("%2.0f", loc.getAccuracy());};
 				
 				GPSstate.setText("Координаты получены, точность: " + accuracy + " м. ");
-						//+ "\t\nДолгота:\t" + loc.getLongitude() 	    
-		                //+ "\nШирота:\t" + loc.getLatitude());
+				//+ "\t\nШирота: " + loc.getLatitude() + "Долгота: " + loc.getLongitude());
 				GPSstate.setTextColor(Color.GREEN);
 				sendBtn.setEnabled(true);
 				
 			}
 			else {
-				GPSstate.setText("Данные о местоположении недоступны");
+				GPSstate.setText(R.string.gps_state_unavialable);
 				GPSstate.setTextColor(Color.RED);
 			}
 			break;
@@ -251,12 +229,13 @@ public class MainActivity extends Activity {
 		//getMenuInflater().inflate(R.menu.main, menu);
 		//return true;
 	
-		menu.add(Menu.NONE, IDM_SETTINGS, Menu.NONE, "Настройки тут будут");
+		menu.add(Menu.NONE, IDM_SETTINGS, Menu.NONE, R.string.menu_item_settings);
+		menu.add(Menu.NONE, IDM_RULES, Menu.NONE, R.string.menu_item_rules);
 		return(super.onCreateOptionsMenu(menu));
 	}
 		
 		
-// Диалоги
+	// Dialogs
     @Override
     protected Dialog onCreateDialog(int id) {
         switch (id) {
@@ -272,7 +251,11 @@ public class MainActivity extends Activity {
         return null;
     }
 		
-		
+	@Override
+	protected void onResume() {
+		super.onResume();
+		Resume_GPS_Scanning();
+	}
 		
 	@Override
 	protected void onPause() {
@@ -288,7 +271,6 @@ public class MainActivity extends Activity {
 	
 	@Override
 	protected void onDestroy() {
-
 	    super.onDestroy();
 	    try {
 	        unregisterReceiver(sendBroadcastReceiver);
@@ -297,12 +279,7 @@ public class MainActivity extends Activity {
 	        e.printStackTrace();
 	    }
 	}
-		
-	@Override
-	protected void onResume() {
-		super.onResume();
-		Resume_GPS_Scanning();
-	}
+
 	
 	// Throw user to GPS settings
 	public void onClickLocationSettings(View view) {
@@ -312,43 +289,29 @@ public class MainActivity extends Activity {
 		}
 	};
 	
-	// Send SMS
-	/*
-	public void onClickSendSMS(View view) {
-		String message = smsEdit.getText().toString();
-		
-		SmsManager smsManager = SmsManager.getDefault();
-		smsManager.sendTextMessage(phoneNumber, null, message, null, null);
-	};*/
-	
+
+	// Small util to show text messages
 	protected void ShowToast(int txt, int lng) {
 		Toast toast = Toast.makeText(MainActivity.this, txt, lng);
 	    toast.setGravity(Gravity.TOP, 0, 0);
 	    toast.show();
 	} 
 	
-	
+	// ------------------------------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        
+    	super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
         phoneNumber = "+79197066604";
-        
-        //LinearLayout ll = (LinearLayout) findViewById( R.id.linearLayoutSum );
-        //ll.setBackgroundColor(Color.BLACK);
-
-        // RelativeLayout ll = (RelativeLayout) findViewById( R.id.relLay );
-        // ll.setBackgroundColor(Color.BLACK);
         
         // Checkbox
         checkBox = (CheckBox)findViewById(R.id.checkBox1);
         checkBox.setChecked(true);
     	checkBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-    	    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
-    	    {
-    	        if ( isChecked )
-    	        {
+    	    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    	        if ( isChecked ) {
     	        	Resume_GPS_Scanning();
     	        } else {
     	        	Pause_GPS_Scanning();
@@ -356,68 +319,41 @@ public class MainActivity extends Activity {
     	        	// при отключении флага, а не при паузе активности к примеру
     	    		printLocation(null, GPS_PAUSE_SCANNING); 
     	        }
-
     	    }
     	});
-        
     	
     	// GPS-state TextView
         GPSstate = (TextView)findViewById(R.id.textView1);
         GPSstate.setTextColor(Color.GREEN);
-        //smsText.setTextColor(Color.parseColor("#F5DC49"));
         
-        
-        // Disable Send button
-        sendBtn = (Button)findViewById(R.id.button1);
-        sendBtn.setEnabled(false);
-        
-
         // GPS init
         manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);		
-		//manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locListener);
-		//Location loc = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		//printLocation(loc);
-        //setContentView(R.layout.activity_main);
-        
       
-        /*
-        SendSms sendSms = new SendSms();
-		DeliverySms deliverySms = new DeliverySms();
-		registerReceiver(sendSms, new IntentFilter(SENT));
-		registerReceiver(deliverySms, new IntentFilter(DELIVERED));
-		 
-		PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
-		PendingIntent delivertPI = PendingIntent.getBroadcast(this, 0, new Intent(DELIVERED), 0);
-        */
-	
         // Show keyboard
         smsEdit = (EditText)findViewById(R.id.editText2);
         smsEdit.requestFocus();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         
-        //Prepare SMS Listeners
+        //Prepare SMS Listeners, prepare Send button
+        sendBtn = (Button)findViewById(R.id.button1);
+        sendBtn.setEnabled(false);
+        
         sendBtn.setOnClickListener(new OnClickListener() {
 
-            @Override
+        	@Override
             public void onClick(View v) {
-
                 if (smsEdit.getText().toString().equals("")
                         | smsEdit.getText().toString().equals(null)) {
-                    //Toast.makeText(MainActivity.this, "enter_ph_no", Toast.LENGTH_LONG).show();
                     MainActivity.this.ShowToast(R.string.error_sms_empty, Toast.LENGTH_LONG);
                 } else {
-
-				
-                        sendSMS(phoneNumber/*smsEdit.getText().toString()*/, smsEdit.getText().toString());
-                        //finish();
-
-
+                	sendSMS(phoneNumber, smsEdit.getText().toString());
                 }
-
             }
         });
         
         
-        
     }
+    
+	// ------------------------------------------------------------------------------------------
+    
 }
