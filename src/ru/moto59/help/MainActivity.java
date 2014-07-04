@@ -1,26 +1,23 @@
 package ru.moto59.help;
 
-import java.util.ArrayList;
 import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.telephony.SmsManager;
+import android.os.Handler;
+import android.os.Message;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -60,9 +57,8 @@ public class MainActivity extends Activity {
 	// Location manager
 	private LocationManager manager;
 	
-	// SMS Broadcast Receivers
-	BroadcastReceiver sendBroadcastReceiver = new sentReceiver();
-    BroadcastReceiver deliveryBroadcastReciever = new deliverReceiver();;
+	// SMS thread
+    ThreadSendSMS mThreadSendSMS;
 	
 	// Views
 	TextView GPSstate;
@@ -77,86 +73,35 @@ public class MainActivity extends Activity {
     // Database
     DBHelper dbHelper;
 	
-
-	// Functions sends an SMS message
-	private void sendSMS(String phoneNumber, String message) {
-		
-		String SENT = "SMS_SENT";
-		String DELIVERED = "SMS_DELIVERED";
-		
-		showDialog(SEND_SMS_DIALOG_ID);
-		
-		if (checkBox.isChecked()) {
-			message = message + " " + coordsToSend;
-		}
-		
-		PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
-		PendingIntent deliveredPI = PendingIntent.getBroadcast(this, 0, new Intent(DELIVERED), 0);
-		
-		registerReceiver(sendBroadcastReceiver, new IntentFilter(SENT));
-		registerReceiver(deliveryBroadcastReciever, new IntentFilter(DELIVERED));
-		
-		SmsManager sms = SmsManager.getDefault();
-
-		ArrayList<String> mArray = sms.divideMessage(message);
-		ArrayList<PendingIntent> sentArrayIntents = new ArrayList<PendingIntent>();
-		ArrayList<PendingIntent> deliveredArrayIntents = new ArrayList<PendingIntent>();
-		
-		for(int i = 0; i < mArray.size(); i++) {
-			sentArrayIntents.add(sentPI);
-			deliveredArrayIntents.add(deliveredPI);
-		}
-		  
-		sms.sendMultipartTextMessage("+7" + phoneNumber, null, mArray, sentArrayIntents, deliveredArrayIntents);
-
-    }
+    
+	// Small util to show text messages by resource id
+	protected void ShowToast(int txt, int lng) {
+		Toast toast = Toast.makeText(MainActivity.this, txt, lng);
+	    toast.setGravity(Gravity.TOP, 0, 0);
+	    toast.show();
+	}
 	
-	// Deliver SMS Receiver
-    class deliverReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent arg1) {
-            switch (getResultCode()) {
-            case Activity.RESULT_OK:
-                MainActivity.this.ShowToast(R.string.info_sms_delivered, Toast.LENGTH_SHORT);
-                break;
-            case Activity.RESULT_CANCELED:
-                MainActivity.this.ShowToast(R.string.info_sms_not_delivered, Toast.LENGTH_SHORT);
-                break;
-            }
-        }
-    }
+	// Small util to show text messages
+	protected void ShowToastT(String txt, int lng) {
+		Toast toast = Toast.makeText(MainActivity.this, txt, lng);
+	    toast.setGravity(Gravity.TOP, 0, 0);
+	    toast.show();
+	}
+    
+    // Define the Handler that receives messages from the thread and update the progress
+ 	// SMS send thread. Result handling
+     final Handler handler = new Handler() {
+         public void handleMessage(Message msg) {
 
-    // Send SMS Receiver 
-    class sentReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent arg1) {
-        
-        	try {
-        		dismissDialog(SEND_SMS_DIALOG_ID);
-        	} catch (Exception e) {}
-        
-            switch (getResultCode()) {
-            case Activity.RESULT_OK:
-                MainActivity.this.ShowToast(R.string.info_sms_sent, Toast.LENGTH_SHORT);
-                //startActivity(new Intent(MainActivity.this, ChooseOption.class));
-                //overridePendingTransition(R.anim.animation, R.anim.animation2);
-                break;
-            case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                MainActivity.this.ShowToast(R.string.info_sms_generic, Toast.LENGTH_SHORT);
-                break;
-            case SmsManager.RESULT_ERROR_NO_SERVICE:
-                MainActivity.this.ShowToast(R.string.info_sms_noservice, Toast.LENGTH_SHORT);
-                break;
-            case SmsManager.RESULT_ERROR_NULL_PDU:
-                MainActivity.this.ShowToast(R.string.info_sms_nullpdu, Toast.LENGTH_SHORT);
-                break;
-            case SmsManager.RESULT_ERROR_RADIO_OFF:
-                MainActivity.this.ShowToast(R.string.info_sms_radioof, Toast.LENGTH_SHORT);
-                break;
-            }
-        }
-    }
-	
+        	 String res_send = msg.getData().getString("res_send");
+             //String res_deliver = msg.getData().getString("res_deliver");
+
+        	 MainActivity.this.ShowToastT(res_send, Toast.LENGTH_SHORT);
+        	 dismissDialog(SEND_SMS_DIALOG_ID);
+         }
+     };  
+
+
 	// Location events (we use GPS only)
 	private LocationListener locListener = new LocationListener() {
 		
@@ -306,7 +251,6 @@ public class MainActivity extends Activity {
             // Stored phone number
             final EditText keyDlgEdit = (EditText) layout.findViewById(R.id.phone_edit_text);
     		dbHelper = new DBHelper(this);
-         	SQLiteDatabase db = dbHelper.getWritableDatabase();
          	keyDlgEdit.setText(dbHelper.getPhone());
     		dbHelper.close();
     		
@@ -320,7 +264,7 @@ public class MainActivity extends Activity {
 	        		SQLiteDatabase db = dbHelper.getWritableDatabase();
 	        		ContentValues cv = new ContentValues();
 	                cv.put("phone", keyDlgEdit.getText().toString());
-	                int updCount = db.update("phone", cv, "_id = ?", new String[] { "1" });
+	                db.update("phone", cv, "_id = ?", new String[] { "1" });
 	                dbHelper.close();
 	                phoneNumber = keyDlgEdit.getText().toString();
 	                keyDlgEdit.selectAll(); // чтобы при повторном открытии номер был выделен
@@ -348,35 +292,14 @@ public class MainActivity extends Activity {
     // Menu
  	@Override
  	public boolean onOptionsItemSelected(MenuItem item) {
-        CharSequence message;
+        
         switch (item.getItemId()) {
             case IDM_RULES:
             	showDialog(RULES_DIALOG_ID);
-            	/*
-            	// 
-              	dbHelper = new DBHelper(this);
-           		SQLiteDatabase db = dbHelper.getWritableDatabase();
-           		Cursor tmp = db.query(true,"data_", null,null,null,null,null,null,null);
-           	   
-           		if (tmp.getCount()>0 ) {
-           			MainActivity.this.ShowToast("Сначала синхронизируйте расходы!", Toast.LENGTH_LONG);
- 				} else {
- 					showDialog(CAT_PROGRESS_DIALOG_ID);
- 					// Запускаем новый поток для вытягивания категорий с удаленного сервера
- 					mThreadUpdateCategories = new ThreadUpdateCategories(handler);
- 					mThreadUpdateCategories.setSecretKey(dbHelper.getSecretKey());
- 					mThreadUpdateCategories.setState(ThreadUpdateCategories.STATE_RUNNING);
- 				    mThreadUpdateCategories.start();
- 				}
-           	    
-           		tmp.close();
-           		dbHelper.close();
-            	*/
                 break;
             case IDM_SETTINGS:
             	showDialog(PHONE_DIALOG_ID);
                 break;    
-                
             default:
                 return false;
         }
@@ -389,29 +312,26 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		Resume_GPS_Scanning();
-    	try {
-    		dismissDialog(SEND_SMS_DIALOG_ID);
-    	} catch (Exception e) {}
 	}
 		
 	@Override
 	protected void onPause() {
 		super.onPause();
 		Pause_GPS_Scanning();
-		 try {
-	            unregisterReceiver(sendBroadcastReceiver);
-	            unregisterReceiver(deliveryBroadcastReciever);
-	     } catch (Exception e) {
-	            e.printStackTrace();
-	     }
+//		 try {
+	            //unregisterReceiver(sendBroadcastReceiver);
+//	            unregisterReceiver(deliveryBroadcastReciever);
+//	     } catch (Exception e) {
+//	            e.printStackTrace();
+//	     }
 	}
 	
 	@Override
 	protected void onDestroy() {
 	    super.onDestroy();
 	    try {
-	        unregisterReceiver(sendBroadcastReceiver);
-	        unregisterReceiver(deliveryBroadcastReciever);
+//	        unregisterReceiver(sendBroadcastReceiver);
+//	        unregisterReceiver(deliveryBroadcastReciever);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
@@ -427,12 +347,7 @@ public class MainActivity extends Activity {
 	};
 	
 
-	// Small util to show text messages
-	protected void ShowToast(int txt, int lng) {
-		Toast toast = Toast.makeText(MainActivity.this, txt, lng);
-	    toast.setGravity(Gravity.TOP, 0, 0);
-	    toast.show();
-	} 
+
 	
 	// ------------------------------------------------------------------------------------------
     @Override
@@ -486,7 +401,21 @@ public class MainActivity extends Activity {
                         | smsEdit.getText().toString().equals(null)) {
                     MainActivity.this.ShowToast(R.string.error_sms_empty, Toast.LENGTH_LONG);
                 } else {
-                	sendSMS(phoneNumber, smsEdit.getText().toString());
+                	
+                	showDialog(SEND_SMS_DIALOG_ID);
+                	
+                	//sendSMS(phoneNumber, smsEdit.getText().toString());
+                	String message = smsEdit.getText().toString();
+    	    		if (checkBox.isChecked()) {
+    	    			message = message + " " + coordsToSend;
+                	}
+
+					// Запускаем новый поток для отправки SMS
+					mThreadSendSMS = new ThreadSendSMS(handler, getApplicationContext());
+					mThreadSendSMS.setMsg(message);
+					mThreadSendSMS.setPhone(phoneNumber);
+					mThreadSendSMS.setState(ThreadSendSMS.STATE_RUNNING);
+					mThreadSendSMS.start();
                 }
             }
         });
