@@ -131,7 +131,9 @@ public class MainActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent arg1) {
         
-        	dismissDialog(SEND_SMS_DIALOG_ID);
+        	try {
+        		dismissDialog(SEND_SMS_DIALOG_ID);
+        	} catch (Exception e) {}
         
             switch (getResultCode()) {
             case Activity.RESULT_OK:
@@ -255,10 +257,10 @@ public class MainActivity extends Activity {
         case SEND_SMS_DIALOG_ID:
         	  mSMSProgressDialog = new ProgressDialog(MainActivity.this);
         	  //mCatProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        	  mSMSProgressDialog.setCanceledOnTouchOutside(true);
-        	  mSMSProgressDialog.setCancelable(true);
+        	  mSMSProgressDialog.setCanceledOnTouchOutside(false);
+        	  mSMSProgressDialog.setCancelable(false);
         	  mSMSProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        	  mSMSProgressDialog.setMessage("Отправка SMS...");
+        	  mSMSProgressDialog.setMessage("Дождитесь окончания отправки SMS...");
         	  return mSMSProgressDialog;
         	  
         case RULES_DIALOG_ID:
@@ -387,6 +389,9 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		Resume_GPS_Scanning();
+    	try {
+    		dismissDialog(SEND_SMS_DIALOG_ID);
+    	} catch (Exception e) {}
 	}
 		
 	@Override
