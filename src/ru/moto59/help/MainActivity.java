@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -64,7 +65,7 @@ public class MainActivity extends Activity {
 	TextView GPSstate;
 	Button sendBtn;
 	CheckBox checkBox;
-	EditText smsEdit;
+	public static EditText smsEdit;
 	
 	// Globals
 	private String phoneNumber;
@@ -96,8 +97,15 @@ public class MainActivity extends Activity {
         	 String res_send = msg.getData().getString("res_send");
              //String res_deliver = msg.getData().getString("res_deliver");
 
-        	 MainActivity.this.ShowToastT(res_send, Toast.LENGTH_SHORT);
         	 dismissDialog(SEND_SMS_DIALOG_ID);
+        	 
+        	 if (res_send.equalsIgnoreCase(getString(R.string.info_sms_sent))) {
+        		Intent intent = new Intent(MainActivity.this, AnotherMsgActivity.class);
+     	     	startActivity(intent);
+        	 } else {
+            	 MainActivity.this.ShowToastT(res_send, Toast.LENGTH_SHORT);
+        	 }
+        	 
          }
      };  
 
@@ -312,6 +320,37 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		Resume_GPS_Scanning();
+		
+		smsEdit = (EditText)findViewById(R.id.editText2);
+		smsEdit.postDelayed(new Runnable() {
+		        @Override
+		        public void run() {
+		            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		            imm.showSoftInput(smsEdit, InputMethodManager.SHOW_IMPLICIT);
+		        }   
+		    }, 100);
+		/*
+		smsEdit.postDelayed(new Runnable() {
+		        @Override
+		        public void run() {
+		            InputMethodManager imm = (InputMethodManager)getSystemService(
+		                      Context.INPUT_METHOD_SERVICE);
+		            imm.hideSoftInputFromWindow(smsEdit.getWindowToken(), 0);
+		        }   
+		    }, 200);*/
+		
+		/*
+		//if (smsEdit.hasFocus()) {
+        	smsEdit = (EditText)findViewById(R.id.editText2);
+        	smsEdit.requestFocus();
+			//getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+			
+			InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+	        imm.showSoftInput(smsEdit, InputMethodManager.SHOW_IMPLICIT);
+	        
+	        MainActivity.this.ShowToastT("TADAAA!!!", Toast.LENGTH_LONG);*/
+			
+    //    }
 	}
 		
 	@Override
@@ -384,12 +423,9 @@ public class MainActivity extends Activity {
         // GPS init
         manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);		
       
-        // Show keyboard
+        //Prepare SMS Listeners, prepare Send button 
         smsEdit = (EditText)findViewById(R.id.editText2);
         smsEdit.requestFocus();
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-        
-        //Prepare SMS Listeners, prepare Send button
         sendBtn = (Button)findViewById(R.id.button1);
         sendBtn.setEnabled(false);
         
@@ -431,7 +467,8 @@ public class MainActivity extends Activity {
      	}
 		dbHelper.close();
         
-        
+
+		
         
     }
     
