@@ -2,13 +2,10 @@ package ru.moto59.help;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.InputMethodManager;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
