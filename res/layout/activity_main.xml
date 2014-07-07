@@ -98,5 +98,28 @@
             />
        
 	</LinearLayout>
+	
+<LinearLayout
+       
+        android:id="@+id/linearLayout5"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/linearLayout4"
+        android:gravity="center"
+    	android:orientation="vertical"
+    	android:paddingTop="8dp" >
+       
+ 		 <Button
+ 		    android:id="@+id/button3"
+ 		    style="?android:attr/buttonStyleSmall"
+ 		    android:layout_width="wrap_content"
+ 		    android:layout_height="wrap_content"
+ 		    
+ 		     
+ 		    android:text="@string/enable_gps_btn" />
+ 		
+	</LinearLayout>
+
 
 </RelativeLayout>

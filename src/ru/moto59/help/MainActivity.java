@@ -64,6 +64,7 @@ public class MainActivity extends Activity {
 	// Views
 	TextView GPSstate;
 	Button sendBtn;
+	Button enableGPSBtn ;
 	CheckBox checkBox;
 	public static EditText smsEdit;
 	
@@ -156,13 +157,16 @@ public class MainActivity extends Activity {
 		case GPS_PROVIDER_DISABLED :
 			GPSstate.setText(R.string.gps_state_disabled);
 			GPSstate.setTextColor(Color.RED);
+			enableGPSBtn.setVisibility(View.VISIBLE);
 			break;
 		case GPS_GETTING_COORDINATS :
 			GPSstate.setText(R.string.gps_state_in_progress);
 			GPSstate.setTextColor(Color.YELLOW);
+			enableGPSBtn.setVisibility(View.INVISIBLE);
 			break;
 		case GPS_PAUSE_SCANNING :
 			GPSstate.setText("");
+			enableGPSBtn.setVisibility(View.INVISIBLE);
 			break;	
 		case GPS_GOT_COORDINATS :
 			if (loc != null) {
@@ -178,11 +182,13 @@ public class MainActivity extends Activity {
 				//+ "\t\nШирота: " + loc.getLatitude() + "Долгота: " + loc.getLongitude());
 				GPSstate.setTextColor(Color.GREEN);
 				sendBtn.setEnabled(true);
+				enableGPSBtn.setVisibility(View.INVISIBLE);
 				
 			}
 			else {
 				GPSstate.setText(R.string.gps_state_unavialable);
 				GPSstate.setTextColor(Color.RED);
+				enableGPSBtn.setVisibility(View.VISIBLE);
 			}
 			break;
 		}
@@ -376,18 +382,7 @@ public class MainActivity extends Activity {
 	    }
 	}
 
-	
-	// Throw user to GPS settings
-	public void onClickLocationSettings(View view) {
-		if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-			startActivity(new Intent(
-		        android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-		}
-	};
-	
 
-
-	
 	// ------------------------------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -416,10 +411,6 @@ public class MainActivity extends Activity {
     	    }
     	});
     	
-    	// GPS-state TextView
-        GPSstate = (TextView)findViewById(R.id.textView1);
-        GPSstate.setTextColor(Color.GREEN);
-        
         // GPS init
         manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);		
       
@@ -456,6 +447,24 @@ public class MainActivity extends Activity {
             }
         });
      
+        // Enable GPS button
+        enableGPSBtn = (Button)findViewById(R.id.button3);
+        enableGPSBtn.setOnClickListener(new OnClickListener() {
+
+        	@Override
+            public void onClick(View v) {
+               	if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+           			startActivity(new Intent(
+           		        android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+           		}
+            }
+        });
+        
+    	// GPS-state TextView
+        GPSstate = (TextView)findViewById(R.id.textView1);
+        GPSstate.setTextColor(Color.GREEN);
+        enableGPSBtn.setVisibility(View.INVISIBLE);
+        
         // Show rules immediately after launch?
         dbHelper = new DBHelper(this);
      	if (dbHelper.needToSplashRules()) {
