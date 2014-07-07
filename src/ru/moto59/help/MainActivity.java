@@ -100,6 +100,13 @@ public class MainActivity extends Activity {
         	inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 		
 	}
+	
+	
+	protected void ShowKeyboard() {
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.showSoftInput(smsEdit, InputMethodManager.SHOW_IMPLICIT);
+		
+	}
 
     // Define the Handler that receives messages from the thread and update the progress
  	// SMS send thread. Result handling
@@ -261,6 +268,7 @@ public class MainActivity extends Activity {
             builder_rules.setNegativeButton("Понятно", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     dialog.cancel();
+                	ShowKeyboard();
                     }
             });
             
@@ -460,6 +468,7 @@ public class MainActivity extends Activity {
     		ContentValues cv = new ContentValues();
             cv.put("rules", 0);
             db.update("rules", cv, "_id = ?", new String[] { "1" });
+            HideKeyboard();
      		showDialog(RULES_DIALOG_ID);
      	}
 		dbHelper.close();
