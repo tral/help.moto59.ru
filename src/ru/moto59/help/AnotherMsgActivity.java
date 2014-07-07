@@ -6,6 +6,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -58,6 +59,18 @@ public class AnotherMsgActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		//Resume_GPS_Scanning();
+		
+		//smsEdit = (EditText)findViewById(R.id.editText2);
+		/*
+		MainActivity.smsEdit.postDelayed(new Runnable() {
+		        @Override
+		        public void run() {
+		            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		            imm.hideSoftInputFromWindow(smsEdit.getWindowToken(),0); 
+		        }   
+		    }, 100);
+		*/
+		
 	}
 		
 	@Override
@@ -79,14 +92,17 @@ public class AnotherMsgActivity extends Activity {
     	super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_another_msg);
         
+        
+        
         Button btn = (Button)findViewById(R.id.button1);
+        btn.requestFocus();
         btn.setOnClickListener(new OnClickListener() {
 
         	@Override
             public void onClick(View v) {
         		MainActivity.smsEdit.setText("");
+        		MainActivity.smsEdit.requestFocus();
         		finish();
-        		
             }
         });
        

@@ -90,6 +90,17 @@ public class MainActivity extends Activity {
 	    toast.show();
 	}
     
+	protected void HideKeyboard() {
+		
+		InputMethodManager inputManager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        //	check if no view has focus:
+        View v=this.getCurrentFocus();
+        if(v!=null)
+        	inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+		
+	}
+
     // Define the Handler that receives messages from the thread and update the progress
  	// SMS send thread. Result handling
      final Handler handler = new Handler() {
@@ -101,6 +112,7 @@ public class MainActivity extends Activity {
         	 dismissDialog(SEND_SMS_DIALOG_ID);
         	 
         	 if (res_send.equalsIgnoreCase(getString(R.string.info_sms_sent))) {
+        		HideKeyboard();
         		Intent intent = new Intent(MainActivity.this, AnotherMsgActivity.class);
      	     	startActivity(intent);
         	 } else {
@@ -223,6 +235,7 @@ public class MainActivity extends Activity {
         	  return mSMSProgressDialog;
         	  
         case RULES_DIALOG_ID:
+        	
             LayoutInflater inflater_rules = getLayoutInflater();
             View layout_rules = inflater_rules.inflate(R.layout.rules_dialog, (ViewGroup)findViewById(R.id.rules_dialog_layout));
             
@@ -309,6 +322,7 @@ public class MainActivity extends Activity {
         
         switch (item.getItemId()) {
             case IDM_RULES:
+            	HideKeyboard();
             	showDialog(RULES_DIALOG_ID);
                 break;
             case IDM_SETTINGS:
@@ -326,35 +340,7 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		Resume_GPS_Scanning();
-		
-		smsEdit = (EditText)findViewById(R.id.editText2);
-		smsEdit.postDelayed(new Runnable() {
-		        @Override
-		        public void run() {
-		            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-		            imm.showSoftInput(smsEdit, InputMethodManager.SHOW_IMPLICIT);
-		        }   
-		    }, 100);
-		/*
-		smsEdit.postDelayed(new Runnable() {
-		        @Override
-		        public void run() {
-		            InputMethodManager imm = (InputMethodManager)getSystemService(
-		                      Context.INPUT_METHOD_SERVICE);
-		            imm.hideSoftInputFromWindow(smsEdit.getWindowToken(), 0);
-		        }   
-		    }, 200);*/
-		
-		/*
-		//if (smsEdit.hasFocus()) {
-        	smsEdit = (EditText)findViewById(R.id.editText2);
-        	smsEdit.requestFocus();
-			//getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-			
-			InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-	        imm.showSoftInput(smsEdit, InputMethodManager.SHOW_IMPLICIT);
-	        
-	        MainActivity.this.ShowToastT("TADAAA!!!", Toast.LENGTH_LONG);*/
+		//ShowKeyboard();
 			
     //    }
 	}
@@ -417,6 +403,8 @@ public class MainActivity extends Activity {
         //Prepare SMS Listeners, prepare Send button 
         smsEdit = (EditText)findViewById(R.id.editText2);
         smsEdit.requestFocus();
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        
         sendBtn = (Button)findViewById(R.id.button1);
         sendBtn.setEnabled(false);
         
