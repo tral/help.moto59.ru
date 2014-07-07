@@ -101,7 +101,6 @@ public class AnotherMsgActivity extends Activity {
         	@Override
             public void onClick(View v) {
         		MainActivity.smsEdit.setText("");
-        		MainActivity.smsEdit.requestFocus();
         		finish();
             }
         });
