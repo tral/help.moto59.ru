@@ -19,7 +19,7 @@
 		        android:layout_height="wrap_content"
 		        android:layout_alignParentLeft="true"
 		        android:layout_alignParentTop="true"
-		        android:text="Порядок извещения других участников сервиса об экстренном событии"
+		        android:text="Об использовании сервиса"
 		        android:textAppearance="?android:attr/textAppearanceMedium" />
     
      </LinearLayout>
