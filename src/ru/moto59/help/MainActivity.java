@@ -190,12 +190,12 @@ public class MainActivity extends Activity {
 		case GPS_GOT_COORDINATS :
 			if (loc != null) {
 
-				coordsToSend = String.format(Locale.US , "%2.5f", loc.getLatitude()) + " " + String.format(Locale.US ,"%3.5f", loc.getLongitude());
+				coordsToSend = String.format(Locale.US, "%2.5f", loc.getLatitude()) + " " + String.format(Locale.US ,"%3.5f", loc.getLongitude());
 
 				// Accuracy
 				if (loc.getAccuracy() < 0.0001) {accuracy = "?"; }
 					else if (loc.getAccuracy() > 99) {accuracy = "> 99";}
-						else {accuracy = String.format("%2.0f", loc.getAccuracy());};
+						else {accuracy = String.format(Locale.US, "%2.0f", loc.getAccuracy());};
 				
 				GPSstate.setText("Координаты получены, точность: " + accuracy + " м. ");
 				//+ "\t\nШирота: " + loc.getLatitude() + "Долгота: " + loc.getLongitude());
@@ -308,6 +308,7 @@ public class MainActivity extends Activity {
             
             builder.setNegativeButton("Отменить", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
+                	keyDlgEdit.selectAll(); // чтобы при повторном открытии текст был выделен
                     dialog.cancel();
                     }
             });
