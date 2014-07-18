@@ -57,7 +57,7 @@ import android.database.sqlite.SQLiteOpenHelper;
       
       // Договорились, что телефон хранится в таблице с _id=1
       cv.put("_id", 1);
-      cv.put("phone", "9955555555"); // без "+7" !!!
+      cv.put("phone", "9194886172"); // без "+7" !!!
       db.insert("phone", null, cv);  
       
       // Показывать ли правила при запуске
