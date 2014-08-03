@@ -18,6 +18,7 @@ public class AnotherMsgActivity extends Activity {
 		super.onResume();
 	}
 		
+	
 	@Override
 	protected void onPause() {
 		super.onPause();
