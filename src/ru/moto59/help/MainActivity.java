@@ -439,7 +439,7 @@ public class MainActivity extends Activity {
                 	//sendSMS(phoneNumber, smsEdit.getText().toString());
                 	String message = smsEdit.getText().toString();
     	    		if (checkBox.isChecked()) {
-    	    			message = message + " " + coordsToSend;
+    	    			message = message + ";" + coordsToSend;
                 	}
 
 					// Запускаем новый поток для отправки SMS
